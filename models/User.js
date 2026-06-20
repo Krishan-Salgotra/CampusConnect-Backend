@@ -4,43 +4,66 @@ const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true
+      required: true,
     },
 
     email: {
       type: String,
       required: true,
-      unique: true
+      unique: true,
     },
 
     password: {
       type: String,
-      required: true
+      required: true,
     },
 
     branch: {
       type: String,
-      default: ""
+      default: "",
     },
 
     year: {
       type: String,
-      default: ""
+      default: "",
     },
 
     skills: {
       type: [String],
-      default: []
+      default: [],
     },
 
     bio: {
       type: String,
-      default: ""
-    }
+      default: "",
+    },
+
+    github: {
+      type: String,
+      default: "",
+    },
+
+    linkedin: {
+      type: String,
+      default: "",
+    },
+
+    portfolio: {
+      type: String,
+      default: "",
+    },
+
+    profileImage: {
+      type: String,
+      default: "",
+    },
   },
   {
-    timestamps: true
+    timestamps: true,
   }
 );
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model(
+  "User",
+  userSchema
+);

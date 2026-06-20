@@ -1,11 +1,16 @@
 const Request = require("../models/Request");
 const Project = require("../models/Project");
+const Notification = require(
+  "../models/Notification"
+);
 
 const sendRequest = async (req, res) => {
   try {
     const { projectId } = req.body;
 
-    const project = await Project.findById(projectId);
+    const project = await Project.findById(
+      projectId
+    );
 
     if (!project) {
       return res.status(404).json({
@@ -13,25 +18,36 @@ const sendRequest = async (req, res) => {
       });
     }
 
-    const existingRequest = await Request.findOne({
-      projectId,
-      senderId: req.user.id,
-    });
+    const existingRequest =
+      await Request.findOne({
+        projectId,
+        senderId: req.user.id,
+      });
 
     if (existingRequest) {
       return res.status(400).json({
-        message: "Request already sent",
+        message:
+          "Request already sent",
       });
     }
 
-    const request = await Request.create({
-      projectId,
-      senderId: req.user.id,
-      receiverId: project.createdBy,
+    const request =
+      await Request.create({
+        projectId,
+        senderId: req.user.id,
+        receiverId:
+          project.createdBy,
+      });
+
+    await Notification.create({
+      userId: project.createdBy,
+      message:
+        "You received a new join request.",
     });
 
     res.status(201).json({
-      message: "Request sent successfully",
+      message:
+        "Request sent successfully",
       request,
     });
   } catch (error) {
@@ -57,16 +73,26 @@ const getMyRequests = async (req, res) => {
   }
 };
 
-const updateRequestStatus = async (req, res) => {
+const updateRequestStatus = async (
+  req,
+  res
+) => {
   try {
-    const { requestId } = req.params;
-    const { status } = req.body;
+    const { requestId } =
+      req.params;
 
-    const request = await Request.findById(requestId);
+    const { status } =
+      req.body;
+
+    const request =
+      await Request.findById(
+        requestId
+      );
 
     if (!request) {
       return res.status(404).json({
-        message: "Request not found",
+        message:
+          "Request not found",
       });
     }
 
@@ -75,28 +101,26 @@ const updateRequestStatus = async (req, res) => {
     await request.save();
 
     if (status === "accepted") {
-      const project = await Project.findById(
-        request.projectId
-      );
+      await Notification.create({
+        userId:
+          request.senderId,
+        message:
+          "Your join request was accepted.",
+      });
+    }
 
-      if (project) {
-        const alreadyMember =
-          project.teamMembers.includes(
-            request.senderId
-          );
-
-        if (!alreadyMember) {
-          project.teamMembers.push(
-            request.senderId
-          );
-
-          await project.save();
-        }
-      }
+    if (status === "rejected") {
+      await Notification.create({
+        userId:
+          request.senderId,
+        message:
+          "Your join request was rejected.",
+      });
     }
 
     res.status(200).json({
-      message: "Request updated successfully",
+      message:
+        "Request updated successfully",
       request,
     });
   } catch (error) {
